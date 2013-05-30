@@ -1,0 +1,14 @@
+{
+  "title": "API cache",
+  "description": "A Mokuji component to cache API requests to external services server side.",
+  "type": "manual",
+  "dbUpdates": true,
+  "versions": [
+    {
+      "version": "0.0.1-alpha",
+      "date": "2013-05-30",
+      "description": "Started development on ALPHA version. Adds the Twitter API 1.1.",
+      "changes": []
+    }
+  ]
+}
