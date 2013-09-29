@@ -32,7 +32,7 @@ $tweets = json_decode(
   mk('Component')
     ->helpers('api_cache')
     ->call('access_service', array('name'=>'twitter-1.1'))
-    ->user_timeline(array('screen_name'=>'mokujidev','count'=>2)
+    ->user_timeline(array('screen_name'=>'mokujidev','count'=>2))
     ->get('string')
 );
 </pre>
