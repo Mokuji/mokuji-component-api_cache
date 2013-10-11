@@ -5,13 +5,13 @@ class Json extends \dependencies\BaseComponent
   
   protected
     $permissions = array(
-      'twitter' => 1
+      'get_twitter' => 0
     );
   
   protected function get_twitter($data, $params)
   {
     
-    $params->{0}->validate('Twitter API method', array('required', 'string', 'in'=>array('user_timeline')))->back();
+    $params->{0}->validate('Twitter API method', array('required', 'string', 'in'=>array('user_timeline', 'search')))->back();
     
     return json_decode(mk('Component')
       ->helpers('api_cache')
@@ -30,6 +30,12 @@ class Json extends \dependencies\BaseComponent
         ->table('api_cache', 'ServiceOauth2Credentials')
         ->pk($service_credentials->key())
         ->execute_single()
+        ->is('empty',function()use($service_credentials){
+          return mk('Sql')->model('api_cache', 'ServiceOauth2Credentials')
+            ->merge(array(
+              'service_id', $service_credentials->key()
+            ));
+        })
         ->merge($service_credentials->having('api_key', 'api_secret'))
         ->save();
       

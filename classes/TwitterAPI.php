@@ -34,6 +34,53 @@ class TwitterAPI
     
   }
   
+  public function search($parameters)
+  {
+    
+    raw($parameters);
+    
+    $query = 'statuses/user_timeline?'.http_build_query($parameters);
+    $service = $this->service;
+    
+    $queryModel = $this->_get_query_model($service, $query);
+
+    if($queryModel->is_valid_cache->get('boolean'))
+      return $queryModel->save()->response;
+    
+    $this->codebird->setReturnFormat(CODEBIRD_RETURNFORMAT_ARRAY);
+    $reply = $this->codebird->search_tweets($parameters, true);
+    
+    $status = $reply['httpstatus'];
+    unset($reply['httpstatus']);
+    
+    //Check if we need to get a new bearer token.
+    if($this->_check_bearer_token($status, $reply)){
+      $service
+        ->oauth2_credentials
+        ->merge(array(
+          'bearer_token'=>'NULL'
+        ))
+        ->save();
+      $this->_reset_credentials();
+      return $this->search($parameters);
+    }
+    
+    return $queryModel
+      ->bump_executes()
+      ->merge(array(
+        'dt_executed' => date('Y-m-d H:i:s'),
+        'response' => json_encode($reply, JSON_NUMERIC_CHECK)
+      ))
+      
+      //Don't store errors.
+      ->is($status === 200, function($queryModel){
+        $queryModel->save();
+      })
+      
+      ->response;
+
+  }
+
   public function user_timeline($parameters)
   {
     
@@ -42,25 +89,8 @@ class TwitterAPI
     $query = 'statuses/user_timeline?'.http_build_query($parameters);
     $service = $this->service;
     
-    $queryModel = mk('Sql')
-      ->table('api_cache', 'ServiceQueries')
-      ->where('service_id', $this->service->id)
-      ->where('query_hash', "'".sha1($query)."'")
-      ->execute_single()
-      ->is('empty', function()use($service, $query){
-        
-        return mk('Sql')
-          ->model('api_cache', 'ServiceQueries')
-          ->set(array(
-            'service_id' => $service->id,
-            'query' => $query,
-            'query_hash' => sha1($query)
-          ));
-        
-      });
-    
-    $queryModel->bump_requests();
-    
+    $queryModel = $this->_get_query_model($service, $query);
+
     if($queryModel->is_valid_cache->get('boolean'))
       return $queryModel->save()->response;
     
@@ -71,7 +101,7 @@ class TwitterAPI
     unset($reply['httpstatus']);
     
     //Check if we need to get a new bearer token.
-    if($status === 401 && isset($reply['errors']) && isset($reply['errors'][0]['code']) && $reply['errors'][0]['code'] === 89){
+    if($this->_check_bearer_token($status, $reply)){
       $service
         ->oauth2_credentials
         ->merge(array(
@@ -98,6 +128,37 @@ class TwitterAPI
     
   }
   
+  protected function _get_query_model($service, $query)
+  {
+    
+    $queryModel = mk('Sql')
+      ->table('api_cache', 'ServiceQueries')
+      ->where('service_id', $service->id)
+      ->where('query_hash', "'".sha1($query)."'")
+      ->execute_single()
+      ->is('empty', function()use($service, $query){
+        
+        return mk('Sql')
+          ->model('api_cache', 'ServiceQueries')
+          ->set(array(
+            'service_id' => $service->id,
+            'query' => $query,
+            'query_hash' => sha1($query)
+          ));
+        
+      });
+    
+    $queryModel->bump_requests();
+
+    return $queryModel;
+
+  }
+
+  protected function _check_bearer_token($status, $reply)
+  {
+    return $status === 401 && isset($reply['errors']) && isset($reply['errors'][0]['code']) && $reply['errors'][0]['code'] === 89;
+  }
+
   protected function _reset_credentials()
   {
     

@@ -5,6 +5,12 @@
   "dbUpdates": true,
   "versions": [
     {
+      "version": "0.0.2-alpha",
+      "date": "2013-10-11",
+      "description": "Added twitter-1.1/search API call and improved ease of install.",
+      "changes": []
+    },
+    {
       "version": "0.0.1-alpha",
       "date": "2013-05-30",
       "description": "Started development on ALPHA version. Adds the Twitter API 1.1.",

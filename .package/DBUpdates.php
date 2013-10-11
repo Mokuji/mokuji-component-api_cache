@@ -10,6 +10,7 @@ class DBUpdates extends \components\update\classes\BaseDBUpdates
   protected
     $component = 'api_cache',
     $updates = array(
+      '0.0.1-alpha' => '0.0.2-alpha'
     );
   
   public function install_0_0_1_alpha($dummydata, $forced)
