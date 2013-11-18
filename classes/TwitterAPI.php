@@ -47,6 +47,8 @@ class TwitterAPI
     if($queryModel->is_valid_cache->get('boolean'))
       return $queryModel->save()->response;
     
+    mk('Logging')->log('API Cache', 'Performing request', $query);
+    
     $this->codebird->setReturnFormat(CODEBIRD_RETURNFORMAT_ARRAY);
     $reply = $this->codebird->search_tweets($parameters, true);
     
@@ -69,7 +71,7 @@ class TwitterAPI
       ->bump_executes()
       ->merge(array(
         'dt_executed' => date('Y-m-d H:i:s'),
-        'response' => json_encode($reply, JSON_NUMERIC_CHECK)
+        'response' => json_encode($reply)
       ))
       
       //Don't store errors.
@@ -94,6 +96,8 @@ class TwitterAPI
     if($queryModel->is_valid_cache->get('boolean'))
       return $queryModel->save()->response;
     
+    mk('Logging')->log('API Cache', 'Performing request', $query);
+    
     $this->codebird->setReturnFormat(CODEBIRD_RETURNFORMAT_ARRAY);
     $reply = $this->codebird->statuses_userTimeline($parameters, true);
     
@@ -116,7 +120,7 @@ class TwitterAPI
       ->bump_executes()
       ->merge(array(
         'dt_executed' => date('Y-m-d H:i:s'),
-        'response' => json_encode($reply, JSON_NUMERIC_CHECK)
+        'response' => json_encode($reply)
       ))
       
       //Don't store errors.
