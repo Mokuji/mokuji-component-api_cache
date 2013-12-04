@@ -3,7 +3,7 @@
 load_plugin('codebird');
 
 /**
- * Wrapper for quering the Twitter API (version 1.1)
+ * Wrapper for querying the Twitter API (version 1.1)
  */
 class TwitterAPI
 {
@@ -39,7 +39,7 @@ class TwitterAPI
     
     raw($parameters);
     
-    $query = 'statuses/user_timeline?'.http_build_query($parameters);
+    $query = 'search/tweets?'.http_build_query($parameters);
     $service = $this->service;
     
     $queryModel = $this->_get_query_model($service, $query);
